@@ -64,7 +64,7 @@ Resources:
                 Enabled: true
                 ViewerCertificate: 
                     AcmCertificateArn: !Ref CertificateManagerCertificate
-                    CloudFrontDefaultCertificate: false
+                
                     MinimumProtocolVersion: "TLSv1.2_2021"
                     SslSupportMethod: "sni-only"
                 Restrictions: 
@@ -114,12 +114,11 @@ Resources:
         Type: "AWS::CertificateManager::Certificate"
         Properties:
             DomainName: "sethmatthews.com"
-            SubjectAlternativeNames: 
-              - "sethmatthews.com"
             DomainValidationOptions: 
               - 
                 DomainName: "sethmatthews.com"
-                ValidationDomain: "sethmatthews.com"
+
+                HostedZoneId: "Z0322966NR47NESEGE6K"
             CertificateTransparencyLoggingPreference: "ENABLED"
             ValidationMethod: DNS
 
