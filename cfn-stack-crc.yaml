@@ -1,0 +1,126 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Metadata:
+    Generator: "former2"
+Description: ""
+Resources:
+    S3Bucket:
+        Type: "AWS::S3::Bucket"
+        Properties:
+            BucketName: "crc-bucket-038034"
+            BucketEncryption: 
+                ServerSideEncryptionConfiguration: 
+                  - 
+                    ServerSideEncryptionByDefault: 
+                        SSEAlgorithm: "AES256"
+                    BucketKeyEnabled: true
+            WebsiteConfiguration: 
+                IndexDocument: "index.html"
+                ErrorDocument: "index.html"
+
+    S3BucketPolicy:
+        Type: "AWS::S3::BucketPolicy"
+        Properties:
+            Bucket: !Ref S3Bucket
+            PolicyDocument: 
+                Version: "2012-10-17"
+                Statement: 
+                  - 
+                    Sid: "2"
+                    Effect: "Allow"
+                    Principal: 
+                        AWS: !Sub "arn:aws:iam::cloudfront:user/CloudFront Origin Access Identity ${CloudFrontCloudFrontOriginAccessIdentity}"
+                    Action: "s3:GetObject"
+                    Resource: !Sub "arn:aws:s3:::${S3Bucket}/*"
+
+    CloudFrontDistribution:
+        Type: "AWS::CloudFront::Distribution"
+        Properties:
+            DistributionConfig: 
+                Aliases: 
+                  - "sethmatthews.com"
+                Origins: 
+                  - 
+                    ConnectionAttempts: 3
+                    ConnectionTimeout: 10
+                    DomainName: !Sub "${S3Bucket}.s3.${AWS::Region}.amazonaws.com"
+                    Id: !Sub "${S3Bucket}.s3.${AWS::Region}.amazonaws.com"
+                    OriginPath: ""
+                    S3OriginConfig: 
+                        OriginAccessIdentity: !Sub "origin-access-identity/cloudfront/${CloudFrontCloudFrontOriginAccessIdentity}"
+                DefaultCacheBehavior: 
+                    AllowedMethods: 
+                      - "HEAD"
+                      - "GET"
+                    CachedMethods: 
+                      - "HEAD"
+                      - "GET"
+                    Compress: true
+                    CachePolicyId: "658327ea-f89d-4fab-a63d-7e88639e58f6"
+                    SmoothStreaming: false
+                    TargetOriginId: !Sub "${S3Bucket}.s3.${AWS::Region}.amazonaws.com"
+                    ViewerProtocolPolicy: "allow-all"
+                Comment: ""
+                PriceClass: "PriceClass_All"
+                Enabled: true
+                ViewerCertificate: 
+                    AcmCertificateArn: !Ref CertificateManagerCertificate
+                    CloudFrontDefaultCertificate: false
+                    MinimumProtocolVersion: "TLSv1.2_2021"
+                    SslSupportMethod: "sni-only"
+                Restrictions: 
+                    GeoRestriction: 
+                        RestrictionType: "none"
+                HttpVersion: "http2"
+                DefaultRootObject: "index.html"
+                IPV6Enabled: true
+
+    CloudFrontCloudFrontOriginAccessIdentity:
+        Type: "AWS::CloudFront::CloudFrontOriginAccessIdentity"
+        Properties:
+            CloudFrontOriginAccessIdentityConfig: 
+                Comment: !Sub "${S3Bucket}.s3.${AWS::Region}.amazonaws.com"
+
+    CloudFrontOriginAccessControl:
+        Type: "AWS::CloudFront::OriginAccessControl"
+        Properties:
+            OriginAccessControlConfig: 
+                Name: !Sub "${S3Bucket}.s3.${AWS::Region}.amazonaws.com"
+                OriginAccessControlOriginType: "s3"
+                SigningBehavior: "always"
+                SigningProtocol: "sigv4"
+
+    Route53RecordSet:
+        Type: "AWS::Route53::RecordSet"
+        Properties:
+            Name: "sethmatthews.com."
+            Type: "A"
+            AliasTarget: 
+                HostedZoneId: "Z2FDTNDATAQYW2"
+                DNSName: !Sub "${CloudFrontDistribution.DomainName}."
+                EvaluateTargetHealth: false
+            HostedZoneId: "Z0322966NR47NESEGE6K"
+
+    Route53RecordSet2:
+        Type: "AWS::Route53::RecordSet"
+        Properties:
+            Name: !Sub "_2dcec20f2b8d75fa1037e0dd7cccf356.${Route53RecordSet}"
+            Type: "CNAME"
+            TTL: 300
+            ResourceRecords: 
+              - "_20ccf3cf5ded271ab8c3f6d820be10a2.xmkpffzlvd.acm-validations.aws."
+            HostedZoneId: "Z0322966NR47NESEGE6K"
+
+    CertificateManagerCertificate:
+        Type: "AWS::CertificateManager::Certificate"
+        Properties:
+            DomainName: "sethmatthews.com"
+            SubjectAlternativeNames: 
+              - "sethmatthews.com"
+            DomainValidationOptions: 
+              - 
+                DomainName: "sethmatthews.com"
+                ValidationDomain: "sethmatthews.com"
+            CertificateTransparencyLoggingPreference: "ENABLED"
+            ValidationMethod: DNS
+
+
