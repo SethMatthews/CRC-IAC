@@ -6,7 +6,6 @@ Resources:
     S3Bucket:
         Type: "AWS::S3::Bucket"
         Properties:
-            BucketName: "crc-bucket-038034"
             BucketEncryption: 
                 ServerSideEncryptionConfiguration: 
                   - 
